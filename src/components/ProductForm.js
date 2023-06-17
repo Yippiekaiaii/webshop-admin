@@ -1,11 +1,12 @@
 
 import axios from "axios"
-import {useState } from "react"
+import {useEffect, useState } from "react"
 import {useRouter} from "next/router"
 import Spinner from "@/components/Spinner"
+import {ReactSortable} from 'react-sortablejs'
 
 
-export default function ProductForm({_id,title:existingTitle, description:existingDescription , price:existingPrice,images:existingImages}) {
+export default function ProductForm({_id,title:existingTitle, description:existingDescription , price:existingPrice,images:existingImages, category:existingCategory}) {
 
     //Set initial state
     const [title,setTitle]=useState(existingTitle || '')
@@ -14,14 +15,23 @@ export default function ProductForm({_id,title:existingTitle, description:existi
     const [goToProducts, setGoToProducts]= useState(false)
     const [images, setImages]=useState(existingImages || [])
     const [isUploading, setIsUploading]= useState(false)
+    const [categories, setCategories]= useState([])
+    const [category, setCategory]=useState(existingCategory || '')
 
     const router = useRouter() 
 
-    //Add product to database
+    //Get product categories a place into state
+    useEffect(()=>{
+        axios.get('/api/categories').then(result => {
+            setCategories(result.data)
+        })
+    }, [])
+
+    //Add or update product to database
     async function saveProduct(ev) {
         ev.preventDefault()
 
-        const data = {title,description,price,images}
+        const data = {title,description,price,images,category}
 
         //check if we have an id passed
         if (_id){
@@ -60,23 +70,37 @@ export default function ProductForm({_id,title:existingTitle, description:existi
         router.push('/products')
     }
 
+    //Update image order using react-sortablejs and sortablejs packages
+    function updateImagesOrder(images) {
+        setImages(images)
+    }
+
     return (
       
             <form onSubmit={saveProduct}>              
 
                 <label>Prduct Name</label>
                 <input type="text" placeholder="product name" value={title} onChange={ev => setTitle(ev.target.value)}/>
+                <label>Category</label>
+                <select value={category} onChange={ev => setCategory(ev.target.value)}>
+                    <option value="">Uncategorised</option>
+                    {categories.length > 0 && categories.map(c => (
+                        <option value={c._id}>{c.name}</option>
+                    ))}
+                </select>
 
                 <label>Photos</label>
                 <div className="mb-2 flex flex-wrap gap-1">
-                    {!!images?.length && images.map (link => 
-                        <div key={link} className="h-24">
-                            <img src={link} alt="upload image" className="rounded-lg"/>
-                        </div>
-                    )}
+                    <ReactSortable list={images} setList={updateImagesOrder} className="flex flex-wrap gap-1">
+                        {!!images?.length && images.map (link => 
+                            <div key={link} className="h-24">
+                                <img src={link} alt="upload image" className="rounded-lg"/>
+                            </div>
+                        )}
+                    </ReactSortable>
 
                     {isUploading && (
-                        <div className="h-24 p-1 bg-gray-200 flex">
+                        <div className="h-24 p-1 flex">
                             <Spinner/>
                         </div>
                     )}
