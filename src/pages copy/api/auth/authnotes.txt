@@ -1,0 +1,15 @@
+NextAuth 
+https://next-auth.js.org/
+
+Google Cloud Console
+https://console.cloud.google.com
+
+[...nextauth].js code can be found on NextAuths website
+
+Use google console to get up ID and client secret stored in environment variables
+
+Requires install of next-auth dependancy
+
+To use with MongoDb to store users install the following adaptor -  npm install next-auth @next-auth/mongodb-adapter mongodb
+
+Create mongoDB.js in lib folder

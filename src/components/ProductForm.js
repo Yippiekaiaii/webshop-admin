@@ -6,7 +6,7 @@ import Spinner from "@/components/Spinner"
 import {ReactSortable} from 'react-sortablejs'
 
 
-export default function ProductForm({_id,title:existingTitle, description:existingDescription , price:existingPrice,images:existingImages, category:existingCategory}) {
+export default function ProductForm({_id,title:existingTitle, description:existingDescription , price:existingPrice,images:existingImages, category:existingCategory, properties:assignedProperties}) {
 
     //Set initial state
     const [title,setTitle]=useState(existingTitle || '')
@@ -17,8 +17,10 @@ export default function ProductForm({_id,title:existingTitle, description:existi
     const [isUploading, setIsUploading]= useState(false)
     const [categories, setCategories]= useState([])
     const [category, setCategory]=useState(existingCategory || '')
+    const [productProperties, setProductProperties]=useState(assignedProperties || {})
 
     const router = useRouter() 
+
 
     //Get product categories a place into state
     useEffect(()=>{
@@ -31,7 +33,7 @@ export default function ProductForm({_id,title:existingTitle, description:existi
     async function saveProduct(ev) {
         ev.preventDefault()
 
-        const data = {title,description,price,images,category}
+        const data = {title,description,price,images,category,properties:productProperties}
 
         //check if we have an id passed
         if (_id){
@@ -75,11 +77,31 @@ export default function ProductForm({_id,title:existingTitle, description:existi
         setImages(images)
     }
 
+    //Load in category properties
+    const propertiesToFill = []
+    if (categories.length>0 && category) {
+       let catInfo = categories.find(({_id})=> _id === category)
+       propertiesToFill.push(...catInfo.properties)
+       while(catInfo?.parent?._id){
+        const parentCat = categories.find(({_id})=> _id === catInfo?.parent?._id)
+        propertiesToFill.push(...parentCat.properties)
+        catInfo = parentCat
+       }
+    }
+
+    function setProductProp(propName,value){
+        setProductProperties(prev => {
+            const newProductProps = {...prev}
+            newProductProps[propName]=value
+            return newProductProps
+        })
+    }
+
     return (
       
             <form onSubmit={saveProduct}>              
 
-                <label>Prduct Name</label>
+                <label>Product Name</label>
                 <input type="text" placeholder="product name" value={title} onChange={ev => setTitle(ev.target.value)}/>
                 <label>Category</label>
                 <select value={category} onChange={ev => setCategory(ev.target.value)}>
@@ -88,6 +110,16 @@ export default function ProductForm({_id,title:existingTitle, description:existi
                         <option value={c._id}>{c.name}</option>
                     ))}
                 </select>
+                {propertiesToFill.length>0 && propertiesToFill.map(p => (
+                    <div className="flex gap-1">
+                        <div>{p.name}</div>
+                        <select value={productProperties[p.name]} onChange={(ev)=>setProductProp(p.name,ev.target.value)}>
+                            {p.values.map(v => (
+                                <option value={v}>{v}</option>
+                            ))}
+                        </select>
+                    </div>
+                ))}
 
                 <label>Photos</label>
                 <div className="mb-2 flex flex-wrap gap-1">

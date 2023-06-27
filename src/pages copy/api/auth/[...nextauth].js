@@ -1,14 +1,14 @@
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter'
-import NextAuth, { getServerSession } from 'next-auth'
+import NextAuth from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import clientPromise from "@/lib/mongoDB";
 
 const adminEmails = ['peter.wilson1758@gmail.com']
 
-
-export const authOptions = {
+export default NextAuth({
   providers: [
-    // OAuth authentication providers...   
+    // OAuth authentication providers...
+   
     GoogleProvider({
       clientId: process.env.GOOGLE_ID,
       clientSecret: process.env.GOOGLE_SECRET
@@ -21,20 +21,8 @@ export const authOptions = {
           return session
         } else {
           return false
-        }     
+        } 
+    
       }
     }
-}
-
-export default NextAuth(authOptions)
-
-//Test if logged in session is an admin
-export async function isAdminRequest(req, res) {
-  const session = await getServerSession(req,res,authOptions)
-
-  if (!adminEmails.includes(session?.user?.email)) {
-      res.status(401)
-      res.end()
-      throw 'not an admin'
-  }
-}
+})

@@ -2,7 +2,6 @@
 //api function to add a new product to the DB
 import {Product} from "@/models/Product"
 import { mongooseConnect } from "@/lib/mongoose";
-import { isAdminRequest } from './auth/[...nextauth]'
 
 export default async function handle(req, res) {
     
@@ -11,9 +10,6 @@ export default async function handle(req, res) {
 
     //Connect to DB
     await mongooseConnect()
-
-     //Check if admin
-     await isAdminRequest(req,res)
 
     if (method === 'GET') {
 

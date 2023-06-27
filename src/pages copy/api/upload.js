@@ -3,19 +3,10 @@ import multiparty from 'multiparty'
 import {PutObjectCommand,S3Client} from '@aws-sdk/client-s3'
 import fs from 'fs'
 import mime from 'mime-types' //package that identifies the MIME type of a file
-import { mongooseConnect } from '@/lib/mongoose'
-import { isAdminRequest } from './auth/[...nextauth]'
 
 const bucketName = 'pw-web-shop'
 
 export default async function handle(req,res) {
-
-    //Connect to db
-    await mongooseConnect()
-
-    //Check if admin
-    await isAdminRequest()
-
     const form = new multiparty.Form()
     const {fields,files} = await new Promise((resolve,reject)=>{
             form.parse(req,(err,fields,files)=>{
